@@ -1,0 +1,5 @@
+{
+  "close_behavior": "minimize_to_tray",
+  "start_with_windows": true,
+  "show_project_name": true
+}
