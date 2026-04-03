@@ -25,43 +25,50 @@ class App():
         self.mainframe = tk.Frame(self.root)
         self.mainframe.pack(fill='both', expand=True)
 
-        self.text = tk.Text(self.mainframe, height=1, width=40)
-        self.text.insert("1.0", "Program Starting...")
+        self.text = tk.Label(self.mainframe, text="Program Starting...", width=40, anchor='w')
         self.text.pack()
         
-        
-        self.text2 = tk.Text(self.mainframe, height=2, width=40)
-        #self.text2 = tk.Label(self.mainframe, text="WIP, please leave bug reports and suggestions on the Github issues page!")
-        #self.text2.grid(row=2, column=2)
-        self.text2.insert("1.0", "WIP, please leave bug reports and\nsuggestions on the Github issues page!")
+        self.text2 = tk.Label(self.mainframe, text="WIP, please leave bug reports and\nsuggestions on the Github issues page!", justify='center')
         self.text2.place(x=0, y=365)
-        self.text2.tag_configure("center", justify='center')
-        self.text2.tag_add("center", 1.0, "end")
-        #self.text2.grid(row=3, column=3)
+
+        self.tray_icon = None
+        self.tray_thread = None
 
         #self.chkbtn = Checkbutton(self.mainframe, text="Startup with Windows", variable=self.startupChk)
         #self.chkbtn.place(x=0, y=0)
         #self.chkbtn.pack()
 
+        def stop_tray_icon():
+           if self.tray_icon is not None:
+               try:
+                   self.tray_icon.stop()
+               except Exception:
+                   pass
+               self.tray_icon = None
+               self.tray_thread = None
+
         def quit_window(icon, item):
-           icon.stop()
-           self.root.destroy()
+           stop_tray_icon()
+           global progRunning
            progRunning = False
+           self.root.destroy()
 
         def show_window(icon, item):
-           icon.stop()
-           self.root.after(0,self.root.deiconify())
+           stop_tray_icon()
+           self.root.after(0, self.root.deiconify)
 
         def hide_window():
            self.root.withdraw()
-           image=Image.open("imgs/favicon.ico")
-           menu=(item('Show', show_window), item('Quit', quit_window))
-           icon=pystray.Icon("DaVinci Discord RPC", image, "Scythe's DaVinci Discord RPC " + progVersion, menu)
-           icon.run()
+           if self.tray_icon is None:
+               image = Image.open("imgs/favicon.ico")
+               menu = (item('Show', show_window), item('Quit', quit_window))
+               self.tray_icon = pystray.Icon("DaVinci Discord RPC", image, "Scythe's DaVinci Discord RPC " + progVersion, menu)
+               self.tray_thread = threading.Thread(target=self.tray_icon.run, daemon=True)
+               self.tray_thread.start()
 
         self.root.protocol('WM_DELETE_WINDOW', hide_window)
 
-        threading.Thread(target=self.mainProgram).start()
+        threading.Thread(target=self.mainProgram, daemon=True).start()
         self.root.mainloop()
         return
 
@@ -71,11 +78,31 @@ class App():
         os.environ['RESOLVE_SCRIPT_LIB'] = r"C:\Program Files\Blackmagic Design\DaVinci Resolve\fusionscript.dll"
         os.environ['PYTHONPATH'] = r"%PYTHONPATH%;%RESOLVE_SCRIPT_API%\Modules"
 
-        #Discord RPC client details
+        # Discord RPC client details
         client_id = "1297429320243089419"
-        RPC = Presence(client_id)
+        RPC = None
+        rpc_connected = False
 
-        RPC.connect()
+        def disconnect_rpc():
+            nonlocal RPC, rpc_connected
+            if rpc_connected and RPC is not None:
+                try:
+                    RPC.clear()
+                except Exception:
+                    pass
+                try:
+                    RPC.close()
+                except Exception:
+                    pass
+                RPC = None
+                rpc_connected = False
+
+        def set_status(text):
+            try:
+                if self.root.winfo_exists():
+                    self.root.after(0, lambda: self.text.config(text=text))
+            except Exception:
+                pass
 
         def load_source(module_name, file_path):
             if sys.version_info[0] >= 3 and sys.version_info[1] >= 5:
@@ -99,6 +126,7 @@ class App():
                 # The PYTHONPATH needs to be set correctly for this import statement to work.
                 # An alternative is to import the DaVinciResolveScript by specifying absolute path (see ExceptionHandler logic)
                 import DaVinciResolveScript as bmd
+                return bmd.scriptapp("Resolve")
             except ImportError:
                 if sys.platform.startswith("darwin"):
                     expectedPath = "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules/"
@@ -120,9 +148,9 @@ class App():
                     #print(ex)
                     sys.exit()
 
-            return bmd.scriptapp("Resolve")
+                return bmd.scriptapp("Resolve")
         
-        resolve = GetResolve()
+        resolve = None
 
         resolveOpen = False
         startTime = 0
@@ -133,21 +161,34 @@ class App():
     
             if "Resolve.exe" in (i.name() for i in psutil.process_iter()):
                 resolveOpen = True
-                self.text.delete("1.0","end")
-                self.text.insert("1.0", "Connecting to Resolve.exe...", "center")
-                RPC.connect()
+                if resolve is None:
+                    try:
+                        resolve = GetResolve()
+                    except Exception as ex:
+                        set_status("Waiting for Resolve to finish loading...")
+                        time.sleep(10)
+                        continue
+                if not rpc_connected:
+                    RPC = Presence(client_id)
+                    try:
+                        RPC.connect()
+                        rpc_connected = True
+                    except Exception as ex:
+                        set_status(f"Discord RPC failed: {ex}")
+                        time.sleep(10)
+                        continue
+                set_status("Connecting to Resolve.exe...")
                 if(startTime == 0):
                     startTime = time.time()
-                time.sleep(30)
+                time.sleep(10)
             else:
                 resolveOpen = False
                 newtext = "Cannot find Resolve.exe"
-                self.text.delete("1.0","end")
-                self.text.insert("1.0", "Cannot find Resolve.exe", "center")
-                RPC.close()
-                #print("Cannot find Resolve.exe")
+                set_status("Cannot find Resolve.exe")
+                disconnect_rpc()
+                resolve = None
                 startTime = 0
-                time.sleep(15)
+                time.sleep(10)
                 continue
             while resolveOpen:
                 try:
@@ -158,15 +199,14 @@ class App():
                     if project.IsRenderingInProgress():
                         #if rendering
                         jobList = project.GetRenderJobList()
-                        currentRender = jobList[0]
+                        currentRender = jobList[-1]
                         currentJobID = currentRender['JobId']
                         jobProgress = project.GetRenderJobStatus(currentJobID)
                         jobPercentage = jobProgress['CompletionPercentage']
                         #clear console and update discord rpc
                         #os.system('cls')
                         #print("Hit ctrl + c to close program")
-                        self.text.delete("1.0","end")
-                        self.text.insert("1.0", "Rendering: " + project.GetName() + " - " + str(jobPercentage), "center")
+                        set_status("Rendering: " + project.GetName() + " - " + str(jobPercentage))
                         RPC.update(
                             state=project.GetName(),
                             details="Rendering Project: " + str(jobPercentage) + "%",
@@ -177,16 +217,26 @@ class App():
                         #clear console and update discord rpc
                         #os.system('cls')
                         #print("Hit ctrl + c to close program")
-                        self.text.delete("1.0","end")
-                        self.text.insert("1.0", "Editing: " + project.GetName(), "center")
-                        RPC.update(
-                            state=project.GetName(),
-                            details="Editing Project",
-                            start=startTime,
-                            large_image="small_img"
-                            )
-                except AttributeError as Err:
+                        if project.GetName() == "Untitled Project":
+                            set_status("Sitting in Project Manager")
+                            RPC.update(
+                                state="Project Manager",
+                                details="Sitting in",
+                                start=startTime,
+                                large_image="small_img"
+                                )
+                        else:
+                            set_status("Editing: " + project.GetName())
+                            RPC.update(
+                                state=project.GetName(),
+                                details="Editing Project",
+                                start=startTime,
+                                large_image="small_img"
+                                )
+                except Exception as Err:
                     #print(Err)
+                    resolve = None
+                    set_status("Waiting for Resolve to finish loading...")
                     time.sleep(15)
                     break
                 time.sleep(15)
@@ -194,11 +244,19 @@ class App():
                     resolveOpen = True
                 else:
                     resolveOpen = False
+            if not resolveOpen:
+                disconnect_rpc()
+                resolve = None
             time.sleep(15)
 
-        #print("hello!")
+        disconnect_rpc()
+        if hasattr(self, 'tray_icon') and self.tray_icon is not None:
+            try:
+                self.tray_icon.stop()
+            except Exception:
+                pass
 
-        self.root.after(2000, self.mainProgram)
+        #print("hello!")
         
 if __name__ == '__main__':
     App()
