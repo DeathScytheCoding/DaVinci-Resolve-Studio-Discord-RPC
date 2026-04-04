@@ -1,10 +1,55 @@
-# DaVinci-Resolve-Studio-Discord-RPC
-A Discord RPC client for DaVinci Resolve Studio
+<div align="center">
 
-Currently the program is just a Python script and has to have the command prompt open to work correctly. I tried headless but the command prompt kept flashing every 15 seconds when it updated and would take me out of my games or take away keyboard control for a second. 
+# 🎬 DaVinci Resolve Studio Discord RPC
 
-Installation:
-You should be able to download v2.45+ and just run the exe without issue. Hopefully. If not submit a bug report. For now, if you would like the program to start with Windows, you will have to create a shortcut of the exe and put it in your Windows startup folder at AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup (you can get to roaming by typing %appdata% in the Windows search bar).
+**Made with love, not AI (except for this readme :)**
 
-Function:
-Once the script sees that Resolve.exe is open, it will wait 30 seconds and then update Discord with the activity. It will also try to get the current project name and display it under the status "editing". The script will also show when you are rendering a video with a percentage of completion displayed (at the moment this only works if the video you are rendering is first in the queue).
+**Show your real-time DaVinci Resolve Studio activity in Discord Rich Presence.**
+
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)](#)
+[![Runtime](https://img.shields.io/badge/runtime-Python-blue?logo=python&logoColor=white)](#)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+</div>
+
+---
+
+## ✨ At a glance
+
+This app detects DaVinci Resolve Studio and updates your Discord status automatically with dedicated activity states.
+
+### Presence states
+
+- 🧩 **Project Manager state** — shown while you're in the project manager
+- ✂️ **Editing state** — shown while actively editing
+- 🎞️ **Rendering state** — shown while rendering, including progress details
+
+### Built-in settings
+
+- ⚙️ **Start with Windows** toggle
+- 🔒 **Hide project name** toggle for privacy
+
+If your status does not appear in Discord:
+
+1. Make sure the Discord desktop app is open
+2. Make sure DaVinci Resolve Studio is open
+3. Restart this app after both are running
+
+When reporting issues, include:
+
+- Windows version
+- DaVinci Resolve version
+- What state you expected (project manager/editing/rendering)
+- Steps to reproduce
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See [LICENSE](LICENSE).
+
+---
+
+## 🙌 Contributing
+
+PRs and suggestions are welcome.
