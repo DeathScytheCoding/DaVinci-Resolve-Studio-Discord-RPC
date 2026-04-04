@@ -14,6 +14,14 @@ from PIL import Image
 progVersion = "v2.43"
 progRunning = True
 
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, relative_path)
+
 class App():
     def __init__(self):
         self.startupChk = 0
@@ -29,7 +37,7 @@ class App():
         self.text = tk.Label(self.mainframe, text="Program Starting...", width=40, anchor='w')
         self.text.pack()
         
-        self.text2 = tk.Label(self.mainframe, text="WIP, please leave bug reports and\nsuggestions on the Github issues page!", justify='center')
+        self.text2 = tk.Label(self.mainframe, text="WIP, please leave bug reports and\nsuggestions on the Github issues page! v2.51", justify='center')
         self.text2.place(x=0, y=365)
 
         self.settings_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.json")
@@ -67,7 +75,7 @@ class App():
         def hide_window():
            self.root.withdraw()
            if self.tray_icon is None:
-               image = Image.open("imgs/favicon.ico")
+               image = Image.open(resource_path("imgs/favicon.ico"))
                menu = (item('Show', show_window), item('Quit', quit_window))
                self.tray_icon = pystray.Icon("DaVinci Discord RPC", image, "Scythe's DaVinci Discord RPC " + progVersion, menu)
                self.tray_thread = threading.Thread(target=self.tray_icon.run, daemon=True)

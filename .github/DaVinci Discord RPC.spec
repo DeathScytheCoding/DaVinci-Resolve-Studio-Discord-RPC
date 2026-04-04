@@ -1,11 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
+import sys
 
+block_cipher = None
+base_path = os.getcwd()
 
 a = Analysis(
-    ['DaVinci Discord RPC v2.4.pyw'],
-    pathex=['./Lib/site-packages'],
+    [os.path.join(base_path, '.github', 'DaVinci Discord RPC.pyw')],
+    pathex=[base_path],
     binaries=[],
-    datas=[],
+    datas=[(os.path.join(base_path, '.github', 'imgs', 'favicon.ico'), 'imgs')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -14,26 +18,21 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-pyz = PYZ(a.pure)
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
+    a.zipfiles,
     a.datas,
     [],
-    name='DaVinci Discord RPC v2.45',
+    name='DaVinci Discord RPC',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon=['imgs\\favicon.ico'],
+    icon=os.path.join(base_path, '.github', 'imgs', 'favicon.ico'),
 )
