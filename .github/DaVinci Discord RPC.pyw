@@ -11,7 +11,7 @@ from pystray import MenuItem as item
 import pystray
 from PIL import Image
 
-progVersion = "v2.43"
+progVersion = "v2.52"
 progRunning = True
 
 
@@ -37,10 +37,15 @@ class App():
         self.text = tk.Label(self.mainframe, text="Program Starting...", width=40, anchor='w')
         self.text.pack()
         
-        self.text2 = tk.Label(self.mainframe, text="WIP, please leave bug reports and\nsuggestions on the Github issues page! v2.51", justify='center')
+        self.text2 = tk.Label(self.mainframe, text="WIP, please leave bug reports and\nsuggestions on the Github issues page! " + progVersion, justify='center')
         self.text2.place(x=0, y=365)
 
         self.settings_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.json")
+        # For packaged exe, save settings to user directory
+        if getattr(sys, 'frozen', False):
+            settings_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'DaVinciResolveRPC')
+            os.makedirs(settings_dir, exist_ok=True)
+            self.settings_path = os.path.join(settings_dir, 'settings.json')
         self.settings = self.load_settings()
         self.settings_window = None
         self.tray_icon = None
