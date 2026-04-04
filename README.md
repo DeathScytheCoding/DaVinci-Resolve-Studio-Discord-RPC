@@ -29,13 +29,13 @@ This app detects DaVinci Resolve Studio and updates your Discord status automati
 - ⚙️ **Start with Windows** toggle
 - 🔒 **Hide project name** toggle for privacy
 
-If your status does not appear in Discord:
+### If your status does not appear in Discord:
 
 1. Make sure the Discord desktop app is open
 2. Make sure DaVinci Resolve Studio is open
 3. Restart this app after both are running
 
-When reporting issues, include:
+### When reporting issues, include:
 
 - Windows version
 - DaVinci Resolve version
