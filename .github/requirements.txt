@@ -9,5 +9,5 @@ pypresence==4.3.0
 pystray==0.19.5
 requests==2.32.3
 six==1.16.0
-urllib3==2.2.3
+urllib3==2.6.3
 yarg==0.1.10
